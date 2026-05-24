@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="WordFlow"/>
+<meta name="theme-color" content="#0f0f1a"/>
+<title>WordFlow – So'z Yodlash</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg:#0f0f1a;
+  --surface:rgba(255,255,255,.06);
+  --border:rgba(255,255,255,.1);
+  --text:#fff;
+  --sub:rgba(255,255,255,.45);
+  --accent:#FF4B4B;
+  --green:#4ade80;
+  --red:#f87171;
+  --gold:#FFD700;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;background:var(--bg);font-family:'Nunito',sans-serif;color:var(--text);overscroll-behavior:none;}
+
+#app{
+  min-height:100vh;min-height:100dvh;
+  background:linear-gradient(160deg,#0f0f1a 0%,#1a1a2e 55%,#16213e 100%);
+  max-width:430px;margin:0 auto;
+  padding:env(safe-area-inset-top,16px) 16px env(safe-area-inset-bottom,16px);
+  display:flex;flex-direction:column;
+}
+
+/* ── SCREENS ── */
+.screen{display:none;flex-direction:column;flex:1;}
+.screen.active{display:flex;}
+
+/* ── TOP BAR ── */
+.top-bar{display:flex;gap:8px;justify-content:center;margin-bottom:18px;flex-wrap:wrap;}
+.pill{background:rgba(255,255,255,.08);border:1px solid var(--border);border-radius:20px;
+  padding:6px 14px;font-size:13px;font-weight:700;backdrop-filter:blur(6px);}
+
+/* ── POMODORO ── */
+.pomo{text-align:center;margin-bottom:24px;}
+.phase-lbl{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--sub);
+  margin-bottom:10px;font-family:'Space Mono',monospace;}
+.ring-wrap{position:relative;width:154px;height:154px;margin:0 auto 14px;}
+.ring-svg{width:100%;height:100%;transform:rotate(-90deg);}
+.ring-bg{fill:none;stroke:rgba(255,255,255,.06);stroke-width:7;}
+.ring-fg{fill:none;stroke-width:7;stroke-linecap:round;
+  transition:stroke-dashoffset 1s linear,stroke .4s;
+  stroke-dasharray:339.3;stroke-dashoffset:0;}
+.timer-txt{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  font-family:'Space Mono',monospace;font-size:30px;font-weight:700;letter-spacing:2px;}
+.t-btns{display:flex;gap:10px;justify-content:center;margin-bottom:8px;}
+.t-btn{border:none;border-radius:14px;font-family:'Nunito',sans-serif;
+  font-size:15px;font-weight:800;padding:10px 24px;cursor:pointer;
+  color:#fff;transition:transform .15s,opacity .2s;}
+.t-btn:active{transform:scale(.96);}
+.t-primary{background:var(--accent);}
+.t-secondary{background:rgba(255,255,255,.09);border:1px solid var(--border);}
+.pomo-tip{font-size:12px;color:var(--sub);line-height:1.5;}
+
+/* ── GAME CARDS ── */
+.section-ttl{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--sub);
+  margin-bottom:11px;font-family:'Space Mono',monospace;}
+.games-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:20px;}
+.g-card{background:var(--surface);border:1px solid var(--border);border-radius:18px;
+  padding:14px 6px;cursor:pointer;transition:transform .2s,background .2s;
+  text-align:center;display:flex;flex-direction:column;gap:4px;align-items:center;}
+.g-card:active{background:rgba(255,255,255,.12);transform:scale(.97);}
+.g-ico{font-size:26px;}
+.g-name{font-size:13px;font-weight:800;}
+.g-desc{font-size:10px;color:var(--sub);line-height:1.3;}
+
+/* ── STATS BAR ── */
+.stats-bar{display:flex;justify-content:space-around;background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.07);border-radius:18px;padding:14px;margin-top:auto;}
+.stat{text-align:center;}
+.stat-n{font-size:22px;font-weight:900;color:var(--accent);display:block;}
+.stat-l{font-size:10px;color:var(--sub);text-transform:uppercase;letter-spacing:1px;}
+
+/* ── GAME SCREEN ── */
+.back-btn{background:rgba(255,255,255,.08);border:1px solid var(--border);border-radius:10px;
+  color:#fff;padding:7px 14px;cursor:pointer;font-family:'Nunito',sans-serif;
+  font-size:14px;font-weight:700;margin-bottom:14px;align-self:flex-start;}
+.game-wrap{display:flex;flex-direction:column;gap:13px;flex:1;}
+
+.prog-bar{background:rgba(255,255,255,.08);border-radius:99px;height:6px;overflow:hidden;}
+.prog-fill{background:linear-gradient(90deg,#FF4B4B,#FF8C42);height:100%;border-radius:99px;transition:width .35s;}
+.q-hdr{display:flex;justify-content:space-between;align-items:center;}
+.q-cnt{font-size:12px;color:var(--sub);font-family:'Space Mono',monospace;}
+.combo-badge{background:#FF4B4B;border-radius:20px;padding:3px 10px;font-size:12px;font-weight:700;}
+
+.q-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;
+  padding:20px;text-align:center;}
+.q-lbl{font-size:11px;color:var(--sub);margin-bottom:6px;text-transform:uppercase;letter-spacing:1px;}
+.q-word{font-size:28px;font-weight:900;margin-bottom:6px;font-family:'Space Mono',monospace;line-height:1.2;}
+.q-word.uz{font-size:21px;font-family:'Nunito',sans-serif;font-weight:800;}
+.q-ex{font-size:12px;color:var(--sub);font-style:italic;line-height:1.5;}
+
+/* MCQ */
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+.opt{background:rgba(255,255,255,.07);border:2px solid var(--border);border-radius:14px;
+  color:#fff;font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;
+  padding:14px 8px;cursor:pointer;transition:transform .15s,background .2s;line-height:1.35;}
+.opt:active{transform:scale(.97);}
+.opt.correct{background:rgba(74,222,128,.18);border-color:var(--green);color:var(--green);}
+.opt.wrong{background:rgba(248,113,113,.18);border-color:var(--red);color:var(--red);}
+
+/* TYPING */
+.type-area{display:flex;flex-direction:column;gap:9px;}
+.type-in{background:rgba(255,255,255,.07);border:2px solid var(--border);border-radius:14px;
+  color:#fff;font-family:'Space Mono',monospace;font-size:18px;font-weight:700;
+  padding:13px 15px;outline:none;width:100%;transition:border-color .2s;}
+.type-in:focus{border-color:var(--accent);}
+.type-in.correct{border-color:var(--green);color:var(--green);}
+.type-in.wrong{border-color:var(--red);color:var(--red);}
+.type-res{font-size:14px;font-weight:700;text-align:center;padding:5px;}
+.type-res.correct{color:var(--green);}
+.type-res.wrong{color:var(--red);}
+.sub-btn{background:var(--accent);border:none;border-radius:14px;color:#fff;
+  font-family:'Nunito',sans-serif;font-size:16px;font-weight:800;
+  padding:13px;cursor:pointer;transition:opacity .2s;}
+.sub-btn:disabled{opacity:.35;cursor:default;}
+
+/* FLASH */
+.flash-card{background:var(--surface);border:1px solid var(--border);border-radius:24px;
+  min-height:200px;display:flex;flex-direction:column;justify-content:center;
+  align-items:center;cursor:pointer;padding:24px;text-align:center;
+  transition:transform .2s,background .3s,border-color .3s;gap:10px;}
+.flash-card:active{transform:scale(.98);}
+.flash-card.flipped{background:rgba(74,222,128,.07);border-color:rgba(74,222,128,.25);}
+.tap-hint{font-size:10px;color:rgba(255,255,255,.28);text-transform:uppercase;letter-spacing:2px;}
+.flash-lv{font-size:11px;background:rgba(255,255,255,.1);padding:3px 10px;border-radius:99px;color:var(--sub);}
+.flash-uz{font-size:22px;font-weight:800;color:var(--green);}
+.flash-ex{font-size:12px;color:var(--sub);font-style:italic;line-height:1.5;}
+.rate-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.rate-no,.rate-yes{border:none;border-radius:14px;font-family:'Nunito',sans-serif;
+  font-size:15px;font-weight:800;padding:14px;cursor:pointer;transition:transform .15s;}
+.rate-no:active,.rate-yes:active{transform:scale(.96);}
+.rate-no{background:rgba(248,113,113,.15);color:var(--red);border:2px solid rgba(248,113,113,.3);}
+.rate-yes{background:rgba(74,222,128,.15);color:var(--green);border:2px solid rgba(74,222,128,.3);}
+
+/* RESULT */
+.result-scr{flex:1;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:20px;text-align:center;}
+.stars{font-size:44px;display:flex;gap:10px;}
+.star{opacity:.2;filter:drop-shadow(0 0 6px gold);transition:opacity .4s;}
+.star.on{opacity:1;color:gold;}
+.res-title{font-size:30px;font-weight:900;}
+.res-score{font-size:52px;font-weight:900;font-family:'Space Mono',monospace;color:var(--accent);}
+.xp-badge{background:linear-gradient(135deg,#FFD700,#FF8C00);color:#000;
+  font-size:17px;font-weight:900;padding:10px 28px;border-radius:99px;}
+.home-btn{background:rgba(255,255,255,.08);border:2px solid var(--border);border-radius:14px;
+  color:#fff;font-family:'Nunito',sans-serif;font-size:16px;font-weight:700;
+  padding:13px 32px;cursor:pointer;}
+
+/* ── INSTALL BANNER ── */
+#install-banner{
+  display:none;position:fixed;bottom:0;left:0;right:0;
+  background:linear-gradient(135deg,#1a1a2e,#16213e);
+  border-top:1px solid rgba(255,255,255,.12);
+  padding:14px 18px env(safe-area-inset-bottom,14px);
+  z-index:999;gap:10px;align-items:center;
+}
+#install-banner.show{display:flex;}
+#install-banner p{flex:1;font-size:13px;font-weight:700;line-height:1.4;}
+#install-banner p span{color:var(--accent);}
+.inst-btn{background:var(--accent);border:none;border-radius:12px;color:#fff;
+  font-family:'Nunito',sans-serif;font-size:14px;font-weight:800;
+  padding:9px 18px;cursor:pointer;white-space:nowrap;}
+.inst-close{background:none;border:none;color:var(--sub);font-size:20px;cursor:pointer;padding:0 4px;}
+</style>
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ══ HOME SCREEN ══════════════════════════════════════════════════ -->
+  <div class="screen active" id="home-screen">
+    <div class="top-bar">
+      <div class="pill" id="xp-pill">⚡ 0 XP</div>
+      <div class="pill" id="streak-pill">🔥 0 streak</div>
+      <div class="pill" id="cycles-pill">🍅 0 pomodoro</div>
+    </div>
+
+    <div class="pomo">
+      <div class="phase-lbl" id="phase-lbl">🔥 FOCUS</div>
+      <div class="ring-wrap">
+        <svg class="ring-svg" viewBox="0 0 120 120">
+          <circle class="ring-bg" cx="60" cy="60" r="54"/>
+          <circle class="ring-fg" id="ring-fg" cx="60" cy="60" r="54"/>
+        </svg>
+        <div class="timer-txt" id="timer-txt">25:00</div>
+      </div>
+      <div class="t-btns">
+        <button class="t-btn t-primary" id="start-btn" onclick="toggleTimer()">▶ Boshlash</button>
+        <button class="t-btn t-secondary" onclick="resetTimer()">↺ Reset</button>
+      </div>
+      <p class="pomo-tip" id="pomo-tip">🎯 25 daqiqa so'z yodlash — quyidagi o'yinlardan birini o'yna!</p>
+    </div>
+
+    <div>
+      <p class="section-ttl">O'yin turini tanlang</p>
+      <div class="games-grid">
+        <button class="g-card" onclick="startGame('mcq')">
+          <span class="g-ico">🎯</span>
+          <span class="g-name">Quiz</span>
+          <span class="g-desc">To'g'ri tarjimani tanlang</span>
+        </button>
+        <button class="g-card" onclick="startGame('type')">
+          <span class="g-ico">⌨️</span>
+          <span class="g-name">Yozing</span>
+          <span class="g-desc">Ingliz so'zini yozing</span>
+        </button>
+        <button class="g-card" onclick="startGame('flash')">
+          <span class="g-ico">🃏</span>
+          <span class="g-name">Kartalar</span>
+          <span class="g-desc">Flashcard usulida</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="stats-bar">
+      <div class="stat"><span class="stat-n" id="stat-sessions">0</span><span class="stat-l">Sessiya</span></div>
+      <div class="stat"><span class="stat-n">25</span><span class="stat-l">So'z baza</span></div>
+      <div class="stat"><span class="stat-n" id="stat-pomodoros">0</span><span class="stat-l">Pomodoro</span></div>
+    </div>
+  </div>
+
+  <!-- ══ GAME SCREEN ══════════════════════════════════════════════════ -->
+  <div class="screen" id="game-screen">
+    <button class="back-btn" onclick="goHome()">← Orqaga</button>
+    <div class="game-wrap" id="game-wrap"></div>
+  </div>
+
+  <!-- ══ RESULT SCREEN ════════════════════════════════════════════════ -->
+  <div class="screen" id="result-screen">
+    <div class="result-scr">
+      <div class="stars" id="stars"></div>
+      <h2 class="res-title" id="res-title"></h2>
+      <div class="res-score" id="res-score"></div>
+      <div class="xp-badge" id="xp-badge"></div>
+      <button class="home-btn" onclick="goHome()">← Bosh sahifa</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- Install banner -->
+<div id="install-banner">
+  <p>📲 <span>WordFlow</span>'ni telefoningizga o'rnating — oflayn ham ishlaydi!</p>
+  <button class="inst-btn" id="inst-btn">O'rnatish</button>
+  <button class="inst-close" onclick="document.getElementById('install-banner').classList.remove('show')">✕</button>
+</div>
+
+<script>
+// ══ DATA ══════════════════════════════════════════════════════════════════
+const WORDS = [
+  {w:"ambitious",t:"maqsadli",ex:"She is very ambitious about her career.",lv:1},
+  {w:"resilient",t:"bardoshli",ex:"He stayed resilient through hard times.",lv:2},
+  {w:"eloquent",t:"so'zga chechan",ex:"The speaker was eloquent and clear.",lv:2},
+  {w:"diligent",t:"mehnatsevar",ex:"A diligent student always succeeds.",lv:1},
+  {w:"persevere",t:"bardosh bilan davom etmoq",ex:"You must persevere to reach your goal.",lv:2},
+  {w:"scrutinize",t:"sinchkovlik bilan tekshirmoq",ex:"She scrutinized every detail.",lv:3},
+  {w:"profound",t:"chuqur ma'noli",ex:"It was a profound experience.",lv:2},
+  {w:"concise",t:"qisqa va lo'nda",ex:"His answer was concise and clear.",lv:1},
+  {w:"volatile",t:"beqaror",ex:"The market is very volatile.",lv:3},
+  {w:"integrity",t:"halollik",ex:"He is known for his integrity.",lv:2},
+  {w:"acknowledge",t:"tan olmoq",ex:"She acknowledged her mistake.",lv:1},
+  {w:"emphasize",t:"ta'kidlamoq",ex:"He emphasized the importance of practice.",lv:1},
+  {w:"inevitable",t:"muqarrar",ex:"Change is inevitable.",lv:2},
+  {w:"collaborate",t:"hamkorlik qilmoq",ex:"We collaborated on the project.",lv:1},
+  {w:"innovative",t:"innovatsion",ex:"The design is innovative.",lv:2},
+  {w:"perceive",t:"idrok etmoq",ex:"How do you perceive this situation?",lv:2},
+  {w:"contemplate",t:"mulohaza qilmoq",ex:"He contemplated his next move.",lv:3},
+  {w:"articulate",t:"aniq ifodalash",ex:"She articulated her ideas well.",lv:2},
+  {w:"consequence",t:"oqibat",ex:"Think about the consequences.",lv:1},
+  {w:"fundamental",t:"asosiy",ex:"This is a fundamental skill.",lv:1},
+  {w:"accumulate",t:"to'plash",ex:"Debts accumulate over time.",lv:2},
+  {w:"adequate",t:"yetarli",ex:"The resources were adequate.",lv:1},
+  {w:"compromise",t:"kelishuv",ex:"They reached a compromise.",lv:2},
+  {w:"deteriorate",t:"yomonlashmoq",ex:"His health began to deteriorate.",lv:3},
+  {w:"enhance",t:"yaxshilamoq",ex:"Exercise enhances your mood.",lv:2},
+];
+
+const PHASES=[
+  {label:"🔥 FOCUS",dur:25*60,color:"#FF4B4B",tip:"🎯 25 daqiqa so'z yodlash — quyidagi o'yinlardan birini o'yna!"},
+  {label:"🌿 SHORT BREAK",dur:5*60,color:"#4ade80",tip:"☕ 5 daqiqa dam ol!"},
+  {label:"🔥 FOCUS",dur:25*60,color:"#FF4B4B",tip:"🎯 Yana bir sessiya — kuchingiz bor!"},
+  {label:"🌊 LONG BREAK",dur:15*60,color:"#60a5fa",tip:"🌊 15 daqiqa yaxshilab dam ol!"},
+];
+
+// ══ STATE ═════════════════════════════════════════════════════════════════
+let phaseIdx=0, timeLeft=PHASES[0].dur, running=false, timerInterval=null;
+let totalXP=0, completedSessions=0, pomodoros=0;
+let gameType=null, sessionWords=[], gameIdx=0, gameScore=0, gameCombo=0;
+let flashFlipped=false, flashKnown=0;
+const CIRC=2*Math.PI*54;
+
+function pad(n){return String(n).padStart(2,'0');}
+function shuffle(a){return [...a].sort(()=>Math.random()-.5);}
+function pick(a,n){return shuffle(a).slice(0,n);}
+
+// ══ TIMER ═════════════════════════════════════════════════════════════════
+function updateTimerUI(){
+  const ph=PHASES[phaseIdx];
+  document.getElementById('timer-txt').textContent=pad(Math.floor(timeLeft/60))+':'+pad(timeLeft%60);
+  document.getElementById('phase-lbl').textContent=ph.label;
+  document.getElementById('pomo-tip').textContent=ph.tip;
+  document.getElementById('start-btn').textContent=running?'⏸ Pause':'▶ Boshlash';
+  const prog=1-timeLeft/ph.dur;
+  const offset=CIRC*(1-prog);
+  const fg=document.getElementById('ring-fg');
+  fg.style.strokeDashoffset=offset;
+  fg.style.stroke=ph.color;
+  document.getElementById('app').style.setProperty('--accent',ph.color);
+}
+
+function toggleTimer(){
+  running=!running;
+  if(running){
+    timerInterval=setInterval(()=>{
+      timeLeft--;
+      if(timeLeft<=0){
+        clearInterval(timerInterval); running=false;
+        const next=(phaseIdx+1)%PHASES.length;
+        if(phaseIdx%2===0){pomodoros++;document.getElementById('stat-pomodoros').textContent=pomodoros;document.getElementById('cycles-pill').textContent='🍅 '+pomodoros+' pomodoro';}
+        phaseIdx=next; timeLeft=PHASES[next].dur;
+      }
+      updateTimerUI();
+    },1000);
+  } else {
+    clearInterval(timerInterval);
+  }
+  updateTimerUI();
+}
+
+function resetTimer(){
+  clearInterval(timerInterval); running=false;
+  timeLeft=PHASES[phaseIdx].dur;
+  updateTimerUI();
+}
+
+// ══ SCREEN NAV ════════════════════════════════════════════════════════════
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function goHome(){showScreen('home-screen');}
+
+// ══ START GAME ════════════════════════════════════════════════════════════
+function startGame(type){
+  gameType=type;
+  sessionWords=pick(WORDS,8);
+  gameIdx=0; gameScore=0; gameCombo=0; flashKnown=0; flashFlipped=false;
+  showScreen('game-screen');
+  renderGame();
+}
+
+function renderGame(){
+  const wrap=document.getElementById('game-wrap');
+  wrap.innerHTML='';
+  if(gameType==='mcq') renderMCQ(wrap);
+  else if(gameType==='type') renderType(wrap);
+  else renderFlash(wrap);
+}
+
+// ── MCQ ───────────────────────────────────────────────────────────────────
+function renderMCQ(wrap){
+  const w=sessionWords[gameIdx];
+  const wrongs=pick(WORDS.filter(x=>x.w!==w.w),3).map(x=>x.t);
+  const opts=shuffle([w.t,...wrongs]);
+  const pct=(gameIdx/sessionWords.length*100).toFixed(0);
+
+  wrap.innerHTML=`
+    <div class="prog-bar"><div class="prog-fill" style="width:${pct}%"></div></div>
+    <div class="q-hdr">
+      <span class="q-cnt">${gameIdx+1}/${sessionWords.length}</span>
+      ${gameCombo>=2?`<span class="combo-badge">🔥 ${gameCombo}x combo!</span>`:''}
+    </div>
+    <div class="q-card">
+      <p class="q-lbl">Tarjimasini toping</p>
+      <h2 class="q-word">${w.w}</h2>
+      <p class="q-ex">"${w.ex}"</p>
+    </div>
+    <div class="opts" id="opts">
+      ${opts.map(o=>`<button class="opt" onclick="pickOpt(this,'${o.replace(/'/g,"\\'")}','${w.t.replace(/'/g,"\\'")}')">${o}</button>`).join('')}
+    </div>`;
+}
+
+function pickOpt(btn,chosen,correct){
+  if(document.querySelectorAll('.opt.correct,.opt.wrong').length) return;
+  const ok=chosen===correct;
+  btn.classList.add(ok?'correct':'wrong');
+  if(ok){gameScore++;gameCombo++;}else{gameCombo=0;}
+  if(!ok){
+    document.querySelectorAll('.opt').forEach(b=>{
+      if(b.textContent===correct) b.classList.add('correct');
+    });
+  }
+  setTimeout(()=>advanceGame(),900);
+}
+
+// ── TYPING ────────────────────────────────────────────────────────────────
+function renderType(wrap){
+  const w=sessionWords[gameIdx];
+  const pct=(gameIdx/sessionWords.length*100).toFixed(0);
+  wrap.innerHTML=`
+    <div class="prog-bar"><div class="prog-fill" style="width:${pct}%"></div></div>
+    <div class="q-hdr"><span class="q-cnt">${gameIdx+1}/${sessionWords.length}</span></div>
+    <div class="q-card">
+      <p class="q-lbl">O'zbekchasi — inglizcha yozing</p>
+      <h2 class="q-word uz">${w.t}</h2>
+      <p class="q-ex">"${w.ex.replace(new RegExp(w.w,'i'),'___')}"</p>
+    </div>
+    <div class="type-area">
+      <input class="type-in" id="type-in" placeholder="inglizcha yozing..." autocomplete="off" autocapitalize="none" spellcheck="false"/>
+      <div class="type-res" id="type-res"></div>
+      <button class="sub-btn" id="sub-btn" onclick="submitType()">Tekshir →</button>
+    </div>`;
+  setTimeout(()=>document.getElementById('type-in')?.focus(),100);
+  document.getElementById('type-in').addEventListener('keydown',e=>{if(e.key==='Enter')submitType();});
+}
+
+function submitType(){
+  const inp=document.getElementById('type-in');
+  const res=document.getElementById('type-res');
+  if(!inp||inp.disabled) return;
+  const val=inp.value.trim().toLowerCase();
+  const w=sessionWords[gameIdx];
+  const ok=val===w.w.toLowerCase();
+  if(ok) gameScore++;
+  inp.classList.add(ok?'correct':'wrong');
+  inp.disabled=true;
+  document.getElementById('sub-btn').disabled=true;
+  res.className='type-res '+(ok?'correct':'wrong');
+  res.textContent=ok?'✅ Zo\'r!':'❌ To\'g\'ri: '+w.w;
+  setTimeout(()=>advanceGame(),1000);
+}
+
+// ── FLASH ─────────────────────────────────────────────────────────────────
+function renderFlash(wrap){
+  const w=sessionWords[gameIdx];
+  const pct=(gameIdx/sessionWords.length*100).toFixed(0);
+  wrap.innerHTML=`
+    <div class="prog-bar"><div class="prog-fill" style="width:${pct}%"></div></div>
+    <div class="q-hdr"><span class="q-cnt">${gameIdx+1}/${sessionWords.length}</span></div>
+    <div class="flash-card" id="flash-card" onclick="flipCard()">
+      <span class="tap-hint">bosish orqali ochish 👆</span>
+      <h2 class="q-word" style="margin:0">${w.w}</h2>
+      <span class="flash-lv">Level ${w.lv}</span>
+    </div>
+    <div id="rate-area"></div>`;
+}
+
+function flipCard(){
+  if(flashFlipped) return;
+  flashFlipped=true;
+  const w=sessionWords[gameIdx];
+  const card=document.getElementById('flash-card');
+  card.classList.add('flipped');
+  card.innerHTML=`<p class="flash-uz">${w.t}</p><p class="flash-ex">"${w.ex}"</p>`;
+  document.getElementById('rate-area').innerHTML=`
+    <div class="rate-btns">
+      <button class="rate-no" onclick="rateFlash(false)">😅 Bilmadim</button>
+      <button class="rate-yes" onclick="rateFlash(true)">✅ Bildim!</button>
+    </div>`;
+}
+
+function rateFlash(yes){
+  if(yes){flashKnown++;gameScore++;}
+  flashFlipped=false;
+  advanceGame();
+}
+
+// ── ADVANCE ───────────────────────────────────────────────────────────────
+function advanceGame(){
+  gameIdx++;
+  if(gameIdx>=sessionWords.length){
+    finishGame();
+  } else {
+    renderGame();
+  }
+}
+
+function finishGame(){
+  const total=sessionWords.length;
+  const xp=gameScore*10+(gameScore===total?20:0);
+  totalXP+=xp; completedSessions++;
+  document.getElementById('xp-pill').textContent='⚡ '+totalXP+' XP';
+  document.getElementById('streak-pill').textContent='🔥 '+completedSessions+' sessiya';
+  document.getElementById('stat-sessions').textContent=completedSessions;
+
+  const pct=Math.round(gameScore/total*100);
+  const stars=pct>=90?3:pct>=60?2:1;
+  document.getElementById('stars').innerHTML=[0,1,2].map(i=>`<span class="star ${i<stars?'on':''}"">★</span>`).join('');
+  document.getElementById('res-title').textContent=pct>=80?'Ajoyib! 🎉':pct>=50?'Yaxshi! 👍':'Davom et! 💪';
+  document.getElementById('res-score').textContent=gameScore+'/'+total;
+  document.getElementById('xp-badge').textContent='+'+xp+' XP qo\'shildi';
+  showScreen('result-screen');
+}
+
+// ══ PWA INSTALL ═══════════════════════════════════════════════════════════
+let deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault(); deferredPrompt=e;
+  document.getElementById('install-banner').classList.add('show');
+});
+document.getElementById('inst-btn').addEventListener('click',async()=>{
+  if(!deferredPrompt) return;
+  deferredPrompt.prompt();
+  const {outcome}=await deferredPrompt.userChoice;
+  deferredPrompt=null;
+  document.getElementById('install-banner').classList.remove('show');
+});
+
+// ══ SERVICE WORKER (offline) ══════════════════════════════════════════════
+if('serviceWorker' in navigator){
+  const swCode=`
+    const CACHE='wordflow-v1';
+    const URLS=['/'];
+    self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(URLS))));
+    self.addEventListener('fetch',e=>e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request).catch(()=>caches.match('/')))));
+  `;
+  const blob=new Blob([swCode],{type:'application/javascript'});
+  const url=URL.createObjectURL(blob);
+  navigator.serviceWorker.register(url).catch(()=>{});
+}
+
+// ══ INIT ══════════════════════════════════════════════════════════════════
+updateTimerUI();
+</script>
+</body>
+</html>
